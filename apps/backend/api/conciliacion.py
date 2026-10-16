@@ -1,16 +1,12 @@
 from flask import Blueprint, jsonify, request
 
-from services import ValidacionError, conciliar
+from domain.errors import ValidacionError
+from services.conciliacion import conciliar
 
-bp = Blueprint("routes", __name__)
-
-
-@bp.get("/api/health")
-def health():
-    return jsonify({"status": "ok"})
+conciliacion_bp = Blueprint("conciliacion", __name__)
 
 
-@bp.post("/api/conciliacion")
+@conciliacion_bp.post("/api/conciliacion")
 def conciliacion():
     try:
         return jsonify(conciliar(request.files.get("facturas"), request.files.get("contabilidad")))
