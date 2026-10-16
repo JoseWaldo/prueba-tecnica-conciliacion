@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from services import conciliar
+from services import ValidacionError, conciliar
 
 bp = Blueprint("routes", __name__)
 
@@ -12,9 +12,7 @@ def health():
 
 @bp.post("/api/conciliacion")
 def conciliacion():
-    facturas = request.files.get("facturas")
-    contabilidad = request.files.get("contabilidad")
-    if not facturas or not contabilidad:
-        return jsonify({"error": "Debe subir facturas.csv y contabilidad.csv"}), 400
-
-    return jsonify(conciliar(facturas.read(), contabilidad.read()))
+    try:
+        return jsonify(conciliar(request.files.get("facturas"), request.files.get("contabilidad")))
+    except ValidacionError as exc:
+        return jsonify({"error": str(exc)}), 400

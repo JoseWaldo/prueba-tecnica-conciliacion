@@ -27,5 +27,16 @@ Registro de lo generado o modificado con ayuda de agentes de IA en este proyecto
   - `apps/backend/services.py`
   - `apps/backend/models.py`
   - `apps/backend/tests/test_app.py`
-  - `README.md`
-  - `compose.yaml`
+   - `README.md`
+   - `compose.yaml`
+
+## 2026-10-16 — Validaciones de archivos y reorganización de capas
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se agregaron validaciones al endpoint de conciliación (presencia de archivos, extensión `.csv`, codificación, archivo vacío y cabeceras obligatorias) mediante la excepción `ValidacionError`. Posteriormente se consolidó toda la validación en la capa de servicios: `_validar_archivo` y el manejo de `ValidacionError` pasaron de `routes.py` a `services.py`, dejando a `routes.py` como orquestador puro (valida la request, llama a `conciliar` y convierte excepciones en respuestas HTTP). Se añadieron pruebas de validación y se movieron los CSV de ejemplo de `docs/` a `data/` (actualizando la ruta en las pruebas).
+- **Archivos afectados:**
+  - `apps/backend/routes.py`
+  - `apps/backend/services.py`
+  - `apps/backend/tests/test_app.py`
+  - `data/facturas.csv` (movido desde `docs/facturas.csv`)
+  - `data/contabilidad.csv` (movido desde `docs/contabilidad.csv`)

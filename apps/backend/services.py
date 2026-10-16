@@ -5,13 +5,46 @@ from dataclasses import asdict
 
 from models import Factura
 
+CABECERAS_FACTURAS = {
+    "id_factura", "nit_proveedor", "fecha_factura", "concepto", "base_gravable",
+    "tarifa_iva", "valor_iva", "tarifa_retencion", "valor_retencion", "total_factura",
+}
+CABECERAS_CONTABILIDAD = {
+    "id_factura", "fecha_contabilizacion", "cuenta_contable", "centro_costo",
+    "valor_debito", "valor_credito", "estado",
+}
+
+
+class ValidacionError(Exception):
+    """Error de validación de los archivos de entrada."""
+
 
 def _num(valor: str) -> float:
-    return float(valor.strip() or 0)
+    try:
+        return float(valor.strip() or 0)
+    except ValueError:
+        return 0.0
+
+
+def _leer_csv(contenido: bytes, cabeceras: set[str]) -> list[dict]:
+    try:
+        texto = contenido.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise ValidacionError("El archivo no es un CSV válido (codificación no soportada).")
+
+    filas = list(csv.DictReader(io.StringIO(texto)))
+    if not filas:
+        raise ValidacionError("El archivo está vacío.")
+
+    faltantes = cabeceras - set(filas[0].keys())
+    if faltantes:
+        raise ValidacionError(f"Columnas faltantes: {', '.join(sorted(faltantes))}.")
+
+    return filas
 
 
 def _leer_facturas(contenido: bytes) -> list[Factura]:
-    filas = csv.DictReader(io.StringIO(contenido.decode("utf-8-sig")))
+    filas = _leer_csv(contenido, CABECERAS_FACTURAS)
     return [
         Factura(
             id_factura=r["id_factura"].strip(),
@@ -30,13 +63,23 @@ def _leer_facturas(contenido: bytes) -> list[Factura]:
 
 
 def _leer_contabilidad(contenido: bytes) -> set[str]:
-    filas = csv.DictReader(io.StringIO(contenido.decode("utf-8-sig")))
+    filas = _leer_csv(contenido, CABECERAS_CONTABILIDAD)
     return {r["id_factura"].strip() for r in filas}
 
 
-def conciliar(facturas_csv: bytes, contabilidad_csv: bytes) -> dict:
-    facturas = _leer_facturas(facturas_csv)
-    ids_contables = _leer_contabilidad(contabilidad_csv)
+def _validar_archivo(archivo, nombre: str) -> None:
+    if archivo is None:
+        raise ValidacionError(f"Falta el archivo {nombre}.")
+    if not (archivo.filename or "").lower().endswith(".csv"):
+        raise ValidacionError(f"El archivo {nombre} debe ser un CSV (.csv).")
+
+
+def conciliar(facturas, contabilidad) -> dict:
+    _validar_archivo(facturas, "facturas")
+    _validar_archivo(contabilidad, "contabilidad")
+
+    facturas = _leer_facturas(facturas.read())
+    ids_contables = _leer_contabilidad(contabilidad.read())
     conteo = Counter(f.id_factura for f in facturas)
 
     detalle = []
