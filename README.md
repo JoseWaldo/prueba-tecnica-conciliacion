@@ -16,7 +16,7 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
    - [Frontend (Angular)](#frontend-angular)
    - [Docker (opcional)](#docker-opcional)
 4. [Pruebas](#pruebas)
-5. [Integración continua (GitHub Actions)](#integración-continua-github-actions)
+5. [Integración y despliegue continuos (CI/CD)](#integración-y-despliegue-continuos-cicd)
 6. [Infraestructura (Terraform)](#infraestructura-terraform)
 7. [Archivos de prueba (CSV)](#archivos-de-prueba-csv)
 8. [API](#api)
@@ -63,11 +63,13 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 │   ├── facturas.csv
 │   └── contabilidad.csv
 ├── .github/
-│   └── workflows/               # Integración continua (GitHub Actions)
+│   └── workflows/               # CI/CD (GitHub Actions)
 │       ├── backend.yml          # pytest del backend
-│       └── frontend.yml         # build y tests del frontend
+│       ├── frontend.yml         # build y tests del frontend
+│       ├── deploy-backend.yml   # despliega la Lambda (CD)
+│       └── deploy-frontend.yml  # despliega el frontend a S3/CloudFront (CD)
 ├── infra/                       # Infraestructura como código (Terraform)
-│   ├── modules/                 # Módulos: backend (Lambda+API GW) y frontend (S3+CloudFront)
+│   ├── modules/                 # Módulos: backend, frontend y cicd
 │   ├── environments/            # Entornos de despliegue (prod)
 │   └── scripts/                 # Empaquetado de Lambda y despliegue de frontend
 ├── docs/
@@ -147,7 +149,9 @@ Desde `apps/frontend`:
 bun run test -- --watch=false --browsers=ChromeHeadless
 ```
 
-## Integración continua (GitHub Actions)
+## Integración y despliegue continuos (CI/CD)
+
+### Integración continua
 
 El repositorio define dos workflows que se ejecutan en cada `push` y `pull_request`
 sobre `main`, filtrados por rutas para solo correr lo que cambió:
@@ -158,9 +162,24 @@ sobre `main`, filtrados por rutas para solo correr lo que cambió:
   compila (`bun run build`) y ejecuta las pruebas unitarias con Karma
   (`ChromeHeadless`).
 
+### Despliegue continuo (CD)
+
+Al hacer `push` a `main`, dos workflows despliegan la aplicación a AWS usando
+autenticación **OIDC** (GitHub Actions asume el rol IAM `conciliacion-prod-deploy`
+sin secretos de larga duración; ver `infra/modules/cicd/`):
+
+- **Backend** (`.github/workflows/deploy-backend.yml`): empaqueta la app con
+  `package-lambda.py` y actualiza la Lambda con `aws lambda update-function-code`.
+- **Frontend** (`.github/workflows/deploy-frontend.yml`): compila con `bun`,
+  sincroniza `dist/frontend/browser` a S3 e invalida CloudFront.
+
+Los permisos del rol se limitan a: `lambda:UpdateFunctionCode`/`UpdateFunctionConfiguration`,
+`s3:PutObject`/`ListBucket`/`DeleteObject` sobre el bucket del frontend y
+`cloudfront:CreateInvalidation`.
+
 ## Infraestructura (Terraform)
 
-Definición de la infraestructura AWS en la carpeta `infra/`, **aún no desplegada**:
+Definición de la infraestructura AWS en la carpeta `infra/` (desplegada en prod):
 
 - **Backend**: **AWS Lambda** (Flask adaptado con `apig-wsgi`) + **API Gateway
   HTTP API** (ruta `$default`, integración `AWS_PROXY`).
@@ -460,4 +479,25 @@ lo generado o modificado con ayuda de agentes de IA:
   - `apps/frontend/src/environments/environment.prod.ts` (nuevo)
   - `apps/frontend/src/app/services/conciliacion.service.ts`
   - `apps/frontend/angular.json`
+  - `README.md`
+
+### 2026-10-16 — Despliegue continuo (CD) con GitHub Actions y OIDC
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se agregó despliegue continuo de la aplicación a AWS mediante
+  GitHub Actions, autenticado con **OIDC** (sin secretos de larga duración).
+
+  - **Infraestructura** (`infra/modules/cicd/`): proveedor OIDC de GitHub + rol
+    IAM `conciliacion-prod-deploy` con permisos mínimos (Lambda, S3 del frontend
+    y CloudFront).
+  - **Workflow backend** (`.github/workflows/deploy-backend.yml`): empaqueta y
+    actualiza la Lambda al hacer push a `main`.
+  - **Workflow frontend** (`.github/workflows/deploy-frontend.yml`): compila,
+    sincroniza a S3 e invalida CloudFront al hacer push a `main`.
+- **Archivos afectados:**
+  - `infra/modules/cicd/{main,variables,outputs,versions}.tf` (nuevos)
+  - `infra/modules/frontend/outputs.tf`
+  - `infra/environments/prod/{main,variables,outputs}.tf`
+  - `.github/workflows/deploy-backend.yml` (nuevo)
+  - `.github/workflows/deploy-frontend.yml` (nuevo)
   - `README.md`

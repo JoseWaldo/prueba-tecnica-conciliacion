@@ -1,0 +1,38 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/backend/**"
+      - "infra/scripts/package-lambda.py"
+      - ".github/workflows/deploy-backend.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Empaquetar Lambda
+        run: python infra/scripts/package-lambda.py
+
+      - name: Configurar credenciales AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::869162497939:role/conciliacion-prod-deploy
+          aws-region: us-east-1
+
+      - name: Actualizar función Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name conciliacion-prod \
+            --zip-file fileb://infra/build/lambda.zip
