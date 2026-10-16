@@ -21,3 +21,17 @@ module "frontend" {
 
   tags = var.tags
 }
+
+module "cicd" {
+  source = "../../modules/cicd"
+
+  project_name = var.project_name
+  environment  = var.environment
+  github_repo  = var.github_repo
+
+  lambda_function_arn         = module.backend.lambda_function_arn
+  frontend_bucket_arn         = module.frontend.bucket_arn
+  cloudfront_distribution_arn = module.frontend.cloudfront_distribution_arn
+
+  tags = var.tags
+}

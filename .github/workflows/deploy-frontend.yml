@@ -1,0 +1,42 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Instalar dependencias
+        run: bun install --frozen-lockfile
+        working-directory: apps/frontend
+
+      - name: Compilar
+        run: bun run build
+        working-directory: apps/frontend
+
+      - name: Configurar credenciales AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::869162497939:role/conciliacion-prod-deploy
+          aws-region: us-east-1
+
+      - name: Sincronizar a S3
+        run: aws s3 sync apps/frontend/dist/frontend/browser s3://conciliacion-frontend-prod-869162497939 --delete
+
+      - name: Invalidar CloudFront
+        run: aws cloudfront create-invalidation --distribution-id E32B4J1AQLS9S6 --paths "/*"

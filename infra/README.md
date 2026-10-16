@@ -1,9 +1,10 @@
 # Infraestructura (Terraform)
 
-Levantamiento de la infraestructura en AWS con Terraform, aún **no desplegado**.
+Levantamiento de la infraestructura en AWS con Terraform (desplegada en prod).
 
 - **Backend** → **AWS Lambda** (Flask) + **API Gateway HTTP API**.
 - **Frontend** → **S3** (privado) + **CloudFront** con Origin Access Control.
+- **CI/CD** → proveedor OIDC de GitHub + rol IAM de despliegue.
 
 ## Estructura
 
@@ -15,14 +16,19 @@ infra/
 │   │   ├── variables.tf
 │   │   ├── outputs.tf
 │   │   └── versions.tf
-│   └── frontend/               # S3 + CloudFront (OAC) + bucket policy
+│   ├── frontend/               # S3 + CloudFront (OAC) + bucket policy
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── versions.tf
+│   └── cicd/                   # OIDC de GitHub + rol IAM para despliegue
 │       ├── main.tf
 │       ├── variables.tf
 │       ├── outputs.tf
 │       └── versions.tf
 ├── environments/               # Despliegues concretos (uno por entorno)
 │   └── prod/
-│       ├── main.tf             # Usa ambos módulos con configuración de prod
+│       ├── main.tf             # Usa los tres módulos con configuración de prod
 │       ├── variables.tf
 │       ├── outputs.tf
 │       ├── versions.tf         # Provider AWS

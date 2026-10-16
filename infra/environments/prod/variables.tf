@@ -21,6 +21,12 @@ variable "bucket_name" {
   type        = string
 }
 
+variable "github_repo" {
+  description = "Repositorio de GitHub autorizado a desplegar (formato 'owner/repo')"
+  type        = string
+  default     = "JoseWaldo/prueba-tecnica-conciliacion"
+}
+
 variable "tags" {
   description = "Etiquetas adicionales para todos los recursos"
   type        = map(string)

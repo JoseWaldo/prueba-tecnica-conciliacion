@@ -12,3 +12,8 @@ output "frontend_bucket_name" {
   description = "Bucket S3 del frontend"
   value       = module.frontend.bucket_name
 }
+
+output "deploy_role_arn" {
+  description = "ARN del rol IAM para GitHub Actions (CD)"
+  value       = module.cicd.deploy_role_arn
+}
