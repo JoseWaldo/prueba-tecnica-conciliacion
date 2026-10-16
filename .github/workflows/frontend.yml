@@ -8,9 +8,6 @@ on:
       - ".github/workflows/frontend.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "apps/frontend/**"
-      - ".github/workflows/frontend.yml"
 
 defaults:
   run:
