@@ -12,14 +12,12 @@ Monorepo con backend **Flask** y frontend **Angular**.
 │   │   ├── angular.json
 │   │   └── package.json
 │   └── backend/           # Flask
-│       ├── app/
-│       │   ├── routes/
-│       │   ├── services/
-│       │   ├── models/
-│       │   └── __init__.py
+│       ├── app.py
+│       ├── routes.py
+│       ├── services.py
+│       ├── models.py
 │       ├── tests/
-│       ├── requirements.txt
-│       └── run.py
+│       └── requirements.txt
 ├── docs/                  # Documentación
 ├── .gitignore
 ├── AGENTS.md
@@ -40,7 +38,7 @@ cd apps/backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python run.py
+python app.py
 ```
 
 Probar con pytest:

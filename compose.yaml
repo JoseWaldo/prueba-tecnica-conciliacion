@@ -4,7 +4,7 @@ services:
     working_dir: /app
     volumes:
       - ./apps/backend:/app
-    command: sh -c "pip install -r requirements.txt && python run.py"
+    command: sh -c "pip install -r requirements.txt && python app.py"
     ports:
       - "5000:5000"
 
