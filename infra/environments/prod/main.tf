@@ -27,7 +27,7 @@ module "cicd" {
 
   project_name = var.project_name
   environment  = var.environment
-  github_repo  = var.github_repo
+  github_sub   = var.github_sub
 
   lambda_function_arn         = module.backend.lambda_function_arn
   frontend_bucket_arn         = module.frontend.bucket_arn

@@ -8,8 +8,8 @@ variable "environment" {
   type        = string
 }
 
-variable "github_repo" {
-  description = "Repositorio de GitHub (formato 'owner/repo') autorizado a asumir el rol"
+variable "github_sub" {
+  description = "Patrón del claim 'sub' del token OIDC de GitHub autorizado a asumir el rol"
   type        = string
 }
 

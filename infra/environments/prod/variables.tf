@@ -21,10 +21,10 @@ variable "bucket_name" {
   type        = string
 }
 
-variable "github_repo" {
-  description = "Repositorio de GitHub autorizado a desplegar (formato 'owner/repo')"
+variable "github_sub" {
+  description = "Claim 'sub' del token OIDC autorizado a desplegar (formato inmutable con IDs de owner/repo)"
   type        = string
-  default     = "JoseWaldo/prueba-tecnica-conciliacion"
+  default     = "repo:JoseWaldo@50810738/prueba-tecnica-conciliacion@1421449791:*"
 }
 
 variable "tags" {

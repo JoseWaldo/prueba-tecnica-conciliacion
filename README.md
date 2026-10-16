@@ -501,3 +501,21 @@ lo generado o modificado con ayuda de agentes de IA:
   - `.github/workflows/deploy-backend.yml` (nuevo)
   - `.github/workflows/deploy-frontend.yml` (nuevo)
   - `README.md`
+
+### 2026-10-16 — Corrección de OIDC para el CD
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se corrigió la autenticación OIDC del CD, que fallaba con
+  `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+
+  - **Thumbprint**: el certificado de `token.actions.githubusercontent.com` ahora
+    es de Let's Encrypt (ISRG Root X1), no de DigiCert; se actualizó el
+    thumbprint a `cabd2a79a1076a31f21d253635cb039d4329a5e8`.
+  - **Claim `sub` inmutable**: el repo fue creado después del 15-jul-2026, por lo
+    que GitHub emite `sub` con IDs inmutables
+    (`repo:JoseWaldo@50810738/prueba-tecnica-conciliacion@1421449791:*`). Se
+    cambió la variable `github_repo` por `github_sub` en el módulo `cicd`.
+- **Archivos afectados:**
+  - `infra/modules/cicd/{main,variables}.tf`
+  - `infra/environments/prod/{main,variables}.tf`
+  - `README.md`
