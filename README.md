@@ -440,3 +440,24 @@ lo generado o modificado con ayuda de agentes de IA:
   - `apps/backend/lambda_handler.py` (nuevo)
   - `apps/backend/requirements.txt`
   - `README.md`
+
+### 2026-10-16 — Configuración de la API del backend en el frontend
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se agregaron environments de Angular para apuntar el frontend a la
+  URL de la API del backend en producción (antes usaba `/api` relativo con el
+  proxy de desarrollo).
+
+  - `src/environments/environment.ts` (desarrollo): `apiUrl = ''` → sigue usando
+    el proxy (`proxy.conf.json`).
+  - `src/environments/environment.prod.ts` (producción): `apiUrl` = URL de
+    API Gateway.
+  - `ConciliacionService` ahora construye la URL con `environment.apiUrl`.
+  - `angular.json`: `fileReplacements` de `environment.ts` por
+    `environment.prod.ts` en la configuración de producción.
+- **Archivos afectados:**
+  - `apps/frontend/src/environments/environment.ts` (nuevo)
+  - `apps/frontend/src/environments/environment.prod.ts` (nuevo)
+  - `apps/frontend/src/app/services/conciliacion.service.ts`
+  - `apps/frontend/angular.json`
+  - `README.md`
