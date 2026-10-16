@@ -73,24 +73,30 @@ def test_conciliacion_casos(client):
 def test_conciliacion_sin_archivos(client):
     response = _post(client)
     assert response.status_code == 400
-    assert "Falta el archivo" in response.get_json()["error"]
+    assert "No se recibió el archivo" in response.get_json()["error"]
 
 
 def test_conciliacion_extension_invalida(client):
     response = _post(client, facturas=FACTURAS_VALIDAS, contabilidad=CONTABILIDAD_VALIDA,
                      nombre_facturas="facturas.txt")
     assert response.status_code == 400
-    assert "CSV" in response.get_json()["error"]
+    assert "extensión .csv" in response.get_json()["error"]
 
 
 def test_conciliacion_cabeceras_invalidas(client):
     response = _post(client, facturas=b"id_factura,nit_proveedor\nFAC-1,9001\n",
                      contabilidad=CONTABILIDAD_VALIDA)
     assert response.status_code == 400
-    assert "Columnas faltantes" in response.get_json()["error"]
+    assert "Faltan" in response.get_json()["error"]
 
 
 def test_conciliacion_archivo_vacio(client):
     response = _post(client, facturas=b"", contabilidad=CONTABILIDAD_VALIDA)
     assert response.status_code == 400
     assert "vacío" in response.get_json()["error"]
+
+
+def test_ruta_inexistente_devuelve_json(client):
+    response = client.get("/api/no-existe")
+    assert response.status_code == 404
+    assert "error" in response.get_json()

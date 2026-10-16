@@ -17,24 +17,34 @@ def _leer_csv(contenido: bytes, cabeceras: set[str]) -> list[dict]:
     try:
         texto = contenido.decode("utf-8-sig")
     except UnicodeDecodeError:
-        raise ValidacionError("El archivo no es un CSV válido (codificación no soportada).")
+        raise ValidacionError(
+            "No pudimos leer el archivo. Verifica que esté en formato CSV con "
+            "codificación UTF-8."
+        )
 
     filas = list(csv.DictReader(io.StringIO(texto)))
     if not filas:
-        raise ValidacionError("El archivo está vacío.")
+        raise ValidacionError("El archivo está vacío. Por favor, sube un archivo que contenga datos.")
 
     faltantes = cabeceras - set(filas[0].keys())
     if faltantes:
-        raise ValidacionError(f"Columnas faltantes: {', '.join(sorted(faltantes))}.")
+        raise ValidacionError(
+            f"El archivo no tiene todas las columnas requeridas. Faltan: {', '.join(sorted(faltantes))}."
+        )
 
     return filas
 
 
 def validar_archivo(archivo, nombre: str) -> None:
     if archivo is None:
-        raise ValidacionError(f"Falta el archivo {nombre}.")
+        raise ValidacionError(
+            f"No se recibió el archivo de {nombre}. Por favor, adjúntalo y vuelve a intentarlo."
+        )
     if not (archivo.filename or "").lower().endswith(".csv"):
-        raise ValidacionError(f"El archivo {nombre} debe ser un CSV (.csv).")
+        raise ValidacionError(
+            f"El archivo de {nombre} debe ser un CSV con extensión .csv. "
+            "Revisa el archivo que seleccionaste."
+        )
 
 
 def leer_facturas(contenido: bytes) -> list[Factura]:
