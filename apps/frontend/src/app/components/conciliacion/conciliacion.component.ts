@@ -4,11 +4,12 @@ import { ColumnFilter, FlexRender, injectTable } from '@tanstack/angular-table';
 import { COLUMNAS_NUMERICAS, FILTROS } from '../../constants/conciliacion.constants';
 import { Filtro, ResultadoConciliacion } from '../../models/conciliacion.model';
 import { ConciliacionService } from '../../services/conciliacion.service';
+import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { columns, features } from './table.config';
 
 @Component({
   selector: 'app-conciliacion',
-  imports: [CommonModule, FlexRender],
+  imports: [CommonModule, FlexRender, FileUploadComponent],
   templateUrl: './conciliacion.component.html',
   styleUrl: './conciliacion.component.scss',
 })
@@ -66,8 +67,7 @@ export class ConciliacionComponent {
     this.globalFilter.set((event.target as HTMLInputElement).value);
   }
 
-  onFile(event: Event, tipo: 'facturas' | 'contabilidad'): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+  onFile(file: File | null, tipo: 'facturas' | 'contabilidad'): void {
     if (tipo === 'facturas') this.facturas = file;
     else this.contabilidad = file;
   }
