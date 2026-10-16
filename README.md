@@ -52,9 +52,10 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 │       │   ├── components/      # Pantalla y elementos de UI reutilizables
 │       │   │   ├── conciliacion/  # Pantalla principal + config de la tabla
 │       │   │   ├── file-upload/   # Componente de subida con drag and drop
+│       │   │   ├── toast/         # Notificaciones (toasts) reutilizables
 │       │   │   └── estado-badge/  # Badge de estado
-│       │   ├── models/          # Interfaces y tipos (contrato de la API)
-│       │   ├── services/        # Comunicación con el backend
+│       │   ├── models/          # Interfaces y tipos (contrato de la API y toast)
+│       │   ├── services/        # Comunicación con el backend y toast service
 │       │   ├── constants/       # Constantes de la UI
 │       │   ├── utils/           # Utilidades (formato de números)
 │       │   └── app.*            # Shell de la aplicación
@@ -299,6 +300,11 @@ Errores de validación devuelven `400` con `{"error": "<mensaje>"}`.
   registro global en `app.config.ts`.
 - **Estilos del frontend** con SCSS nativo (sin Tailwind): los tokens de diseño
   (colores, tipografía, espaciado) viven en `src/styles.scss` como variables CSS.
+- **Notificaciones con `ToastService`** (signal-based, `providedIn: 'root'`) y un
+  contenedor `app-toast` montado en el shell (`app.component`): variantes
+  `success`/`error`/`info`/`warning` alineadas a los tokens, con auto-cierre a
+  los 6 s, cierre manual con fade-out y accesibilidad (`role="status"`,
+  `aria-live="polite"`).
 - Pruebas con `pytest` usando el cliente de test de Flask y los CSV de `data/`.
 
 ## Funcionalidades no completadas
@@ -579,4 +585,23 @@ lo generado o modificado con ayuda de agentes de IA:
   - `apps/frontend/bun.lock`
   - `apps/frontend/src/app/components/file-upload/*` (nuevo)
   - `apps/frontend/src/app/components/conciliacion/conciliacion.component.{ts,html,scss}`
+  - `README.md`
+
+### 2026-10-16 — Componente de notificaciones (toast)
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se agregó un sistema de notificaciones reutilizable alineado al
+  sistema de diseño: `ToastService` (basado en signals) y el contenedor
+  `app-toast` montado en `app.component`. Soporta variantes `success`, `error`,
+  `info` y `warning` con icono y color por variante, auto-cierre a los 6 s,
+  cierre manual con fade-out de 200 ms, animación de entrada (fade + slide) y
+  accesibilidad (`role="status"`, `aria-live="polite"`). Se integró en la
+  pantalla de conciliación para notificar éxito/error al procesar la respuesta
+  del backend.
+- **Archivos afectados:**
+  - `apps/frontend/src/app/models/toast.model.ts` (nuevo)
+  - `apps/frontend/src/app/services/toast.service.ts` (nuevo)
+  - `apps/frontend/src/app/components/toast/*` (nuevo)
+  - `apps/frontend/src/app/app.component.{ts,html}`
+  - `apps/frontend/src/app/components/conciliacion/conciliacion.component.ts`
   - `README.md`
