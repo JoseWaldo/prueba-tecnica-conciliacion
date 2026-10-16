@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / bun
+node_modules/
+dist/
+.bun/
+bun.lockb
+
+# Entorno
+.env
+.env.*
+
+# IDEs / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
