@@ -103,10 +103,24 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 
 ### Backend (Flask)
 
+Crear el entorno virtual:
+
 ```powershell
 cd apps/backend
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+```
+
+Activar el entorno virtual según el sistema operativo:
+
+| Sistema                  | Comando                                    |
+| ------------------------ | ------------------------------------------ |
+| Windows (PowerShell)     | `.\.venv\Scripts\Activate.ps1`             |
+| Windows (CMD)            | `.\.venv\Scripts\activate.bat`             |
+| Linux / macOS            | `source .venv/bin/activate`                |
+
+Instalar dependencias y ejecutar:
+
+```powershell
 pip install -r requirements.txt
 python app.py
 ```
@@ -124,8 +138,9 @@ bun run start
 La aplicación queda disponible en `http://localhost:4200`.
 
 > **Importante:** el frontend consume la API a través del proxy de desarrollo
-> (ver `apps/frontend/proxy.conf.json`), por lo que el backend debe estar
-> corriendo en `http://localhost:5000`.
+> (ver `apps/frontend/proxy.conf.mjs`), por lo que el backend debe estar
+> corriendo en `http://localhost:5000`. El destino del proxy se configura con la
+> variable de entorno `API_PROXY_TARGET` (por defecto `http://localhost:5000`).
 
 ### Docker (opcional)
 
@@ -134,7 +149,9 @@ docker compose up
 ```
 
 Levanta backend (`:5000`) y frontend (`:4200`) usando las imágenes
-`python:3.12-slim` y `oven/bun:1`.
+`python:3.12-slim` y `oven/bun:1`. El frontend espera a que el backend esté
+saludable (`/api/health`) y apunta el proxy a `http://backend:5000` mediante
+`API_PROXY_TARGET`, por lo que no requiere configuración adicional.
 
 ## Pruebas
 
@@ -469,6 +486,21 @@ commits y apoyo en los pull requests. Registro por etapas:
   - `infra/environments/prod/{main,variables,outputs}.tf`
   - `.github/workflows/deploy-backend.yml` (nuevo)
   - `.github/workflows/deploy-frontend.yml` (nuevo)
+  - `README.md`
+
+### 2026-10-16 — Configuración de Docker y proxy del frontend
+
+- **Resumen:** se corrigió el proxy de desarrollo para que funcione dentro de la
+  red de Docker (`proxy.conf.mjs` con la variable `API_PROXY_TARGET`) y se
+  ajustó `compose.yaml` (healthcheck del backend, `depends_on` y variable de
+  entorno). Se validó la réplica con `docker compose up`: health check,
+  conciliación y proxy del frontend funcionando. Se documentó la activación del
+  entorno virtual de Python para Windows (PowerShell y CMD), Linux y macOS.
+- **Archivos afectados:**
+  - `compose.yaml`
+  - `apps/frontend/proxy.conf.mjs` (nuevo)
+  - `apps/frontend/proxy.conf.json` (eliminado)
+  - `apps/frontend/angular.json`
   - `README.md`
 
 ### 2026-10-16 — Corrección de OIDC para el CD
