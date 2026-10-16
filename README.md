@@ -51,6 +51,7 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 │       ├── src/app/
 │       │   ├── components/      # Pantalla y elementos de UI reutilizables
 │       │   │   ├── conciliacion/  # Pantalla principal + config de la tabla
+│       │   │   ├── file-upload/   # Componente de subida con drag and drop
 │       │   │   └── estado-badge/  # Badge de estado
 │       │   ├── models/          # Interfaces y tipos (contrato de la API)
 │       │   ├── services/        # Comunicación con el backend
@@ -93,6 +94,8 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
   - `@angular/*` `^19.1.0`
   - `typescript` `~5.7.2`
   - `rxjs` `~7.8.0`
+  - `@lucide/angular` `^1.58.0` (iconos Lucide como componentes standalone;
+    cada icono se importa donde se usa, sin configuración global)
 
 ## Instalación y ejecución
 
@@ -291,6 +294,11 @@ Errores de validación devuelven `400` con `{"error": "<mensaje>"}`.
   de UI) y `utils/` (formato); `app.component` actúa solo como shell.
 - Validaciones centralizadas en `ValidacionError`, convertidas a `400`.
 - `flask-cors` para permitir el consumo desde el frontend Angular.
+- **Iconos con Lucide** (`@lucide/angular`): componentes standalone y
+  tree-shakeables que se importan por icono (p. ej. `LucideFileText`), sin
+  registro global en `app.config.ts`.
+- **Estilos del frontend** con SCSS nativo (sin Tailwind): los tokens de diseño
+  (colores, tipografía, espaciado) viven en `src/styles.scss` como variables CSS.
 - Pruebas con `pytest` usando el cliente de test de Flask y los CSV de `data/`.
 
 ## Funcionalidades no completadas
@@ -518,4 +526,57 @@ lo generado o modificado con ayuda de agentes de IA:
 - **Archivos afectados:**
   - `infra/modules/cicd/{main,variables}.tf`
   - `infra/environments/prod/{main,variables}.tf`
+
+### 2026-10-16 — Integración de Tailwind CSS 4 en el frontend
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se instaló Tailwind CSS 4 en el frontend Angular siguiendo la guía
+  oficial (PostCSS). Se agregaron las dependencias `tailwindcss`,
+  `@tailwindcss/postcss` y `postcss`, se creó `.postcssrc.json` registrando el
+  plugin `@tailwindcss/postcss` y se importó Tailwind en `src/styles.scss`
+  (`@import "tailwindcss";`). Verificado con `bun run build`.
+  *(Revertido el mismo día: ver la entrada siguiente.)*
+- **Archivos afectados:**
+  - `apps/frontend/package.json`
+  - `apps/frontend/bun.lock`
+  - `apps/frontend/.postcssrc.json` (nuevo)
+  - `apps/frontend/src/styles.scss`
+  - `README.md`
+
+### 2026-10-16 — Librería de iconos Lucide en el frontend
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se instaló la librería de iconos **Lucide** para Angular
+  (`@lucide/angular`), que expone cada icono como componente standalone y
+  tree-shakeable (`LucideFileText`, `LucideUpload`, etc.). No requiere
+  configuración global en `app.config.ts`: cada icono se importa en el
+  componente donde se usa. Inicialmente se probó el paquete legacy
+  `lucide-angular` y se reemplazó por `@lucide/angular` (API actual v1).
+- **Archivos afectados:**
+  - `apps/frontend/package.json`
+  - `apps/frontend/bun.lock`
+  - `README.md`
+
+### 2026-10-16 — Eliminación de Tailwind y componente de subida de archivos
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:**
+  - **Eliminación de Tailwind:** se revirtió la integración de Tailwind CSS 4:
+    se quitó el `@import "tailwindcss";` de `src/styles.scss`, se eliminó
+    `.postcssrc.json` y se desinstalaron las dependencias `tailwindcss`,
+    `@tailwindcss/postcss` y `postcss`. El frontend vuelve a usar solo SCSS
+    nativo con variables CSS en `src/styles.scss`.
+  - **Componente de subida de archivos:** se creó
+    `apps/frontend/src/app/components/file-upload/`, un componente standalone
+    reutilizable con drag and drop, validación por extensión y tamaño máximo,
+    estado de error y accesibilidad (role/tabindex/teclado). Reemplaza a los
+    `<input type="file">` de la pantalla de conciliación (dos instancias:
+    facturas y contabilidad).
+- **Archivos afectados:**
+  - `apps/frontend/src/styles.scss`
+  - `apps/frontend/.postcssrc.json` (eliminado)
+  - `apps/frontend/package.json`
+  - `apps/frontend/bun.lock`
+  - `apps/frontend/src/app/components/file-upload/*` (nuevo)
+  - `apps/frontend/src/app/components/conciliacion/conciliacion.component.{ts,html,scss}`
   - `README.md`

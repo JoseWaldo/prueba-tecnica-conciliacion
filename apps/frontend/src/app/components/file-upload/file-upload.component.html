@@ -1,0 +1,107 @@
+<div class="upload">
+  @if (label(); as l) {
+    <span class="upload__label">{{ l }}</span>
+  }
+
+  <div
+    class="drop-zone"
+    [class.dragging]="dragging()"
+    role="button"
+    tabindex="0"
+    [attr.aria-label]="label()"
+    (click)="open()"
+    (keydown)="onKeydown($event)"
+    (dragenter)="onDragEnter($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <svg
+      class="drop-illustration"
+      width="90"
+      height="76"
+      viewBox="0 0 90 76"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <rect x="10" y="10" width="52" height="44" rx="4" fill="#ffffff" stroke="#e6e1d5" />
+      <rect x="18" y="19" width="30" height="3" rx="1.5" fill="#ddd8cb" />
+      <rect x="18" y="27" width="36" height="3" rx="1.5" fill="#ddd8cb" />
+      <rect x="18" y="35" width="26" height="3" rx="1.5" fill="#ddd8cb" />
+      <rect x="28" y="5" width="52" height="44" rx="4" fill="#f6f3ea" stroke="#e6e1d5" />
+      <rect x="36" y="14" width="32" height="3" rx="1.5" fill="#e2ddd0" />
+      <rect x="36" y="22" width="38" height="3" rx="1.5" fill="#e2ddd0" />
+      <rect x="36" y="30" width="28" height="3" rx="1.5" fill="#e2ddd0" />
+      <path
+        class="drop-folder"
+        d="M8 38 h24 l7 7 h43 a4 4 0 0 1 4 4 v15 a4 4 0 0 1 -4 4 H12 a4 4 0 0 1 -4 -4 Z"
+      />
+      <circle cx="45" cy="52" r="13" fill="#ffffff" />
+      <path
+        class="drop-arrow"
+        d="M45 46 v12 M40.5 50.5 L45 46 L49.5 50.5"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+
+    <p class="drop-title">
+      {{ dragging() ? "Suelta tu archivo aquí" : "Arrastra tu archivo o haz clic para buscar" }}
+    </p>
+    <p class="drop-sub">{{ hint() }}</p>
+  </div>
+
+  <input
+    #fileInput
+    type="file"
+    [accept]="accept()"
+    hidden
+    (change)="onChange($event)"
+  />
+
+  <div class="file-list">
+    @if (file(); as f) {
+      <div class="file-row">
+        <div class="file-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 4 a2 2 0 0 1 2 -2 h10 l8 8 v22 a2 2 0 0 1 -2 2 H12 a2 2 0 0 1 -2 -2 Z" fill="#1f6f6b" />
+            <path d="M20 4 L28 12 L20 12 Z" fill="#174f4c" />
+            <text x="18" y="25" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="7" font-weight="700" fill="#ffffff">{{ iconLabel() }}</text>
+          </svg>
+        </div>
+        <div class="file-info">
+          <div class="file-name">{{ f.name }}</div>
+          <div class="file-meta">{{ formatSize(f.size) }}</div>
+        </div>
+        <button type="button" class="btn" aria-label="Quitar archivo" (click)="clear()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M2.5 2.5 L9.5 9.5 M9.5 2.5 L2.5 9.5" stroke="#9a9a9a" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    }
+
+    @if (error(); as err) {
+      <div class="file-row">
+        <div class="file-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 4 a2 2 0 0 1 2 -2 h10 l8 8 v22 a2 2 0 0 1 -2 2 H12 a2 2 0 0 1 -2 -2 Z" fill="#1f6f6b" />
+            <path d="M20 4 L28 12 L20 12 Z" fill="#174f4c" />
+            <text x="18" y="25" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="7" font-weight="700" fill="#ffffff">{{ iconLabel() }}</text>
+          </svg>
+        </div>
+        <div class="file-info">
+          <div class="file-name file-name--error">{{ err.name }}</div>
+          <div class="file-meta file-meta--error">{{ err.reason }}</div>
+        </div>
+        <button type="button" class="btn" aria-label="Quitar archivo" (click)="clear()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M2.5 2.5 L9.5 9.5 M9.5 2.5 L2.5 9.5" stroke="#9a9a9a" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -1,25 +1,26 @@
 <section class="hero">
   <h1>Conciliador de facturas y retenciones</h1>
   <p class="hero__sub">
-    Carga los archivos de facturas y contabilidad para validar las reglas de negocio y revisar las inconsistencias.
+    Carga los archivos de facturas y contabilidad para validar las reglas de
+    negocio y revisar las inconsistencias.
   </p>
 </section>
 
 <section class="card">
   <div class="grid">
-    <label class="field">
-      <span class="field__label">Facturas (CSV)</span>
-      <input type="file" accept=".csv" (change)="onFile($event, 'facturas')" />
-    </label>
-    <label class="field">
-      <span class="field__label">Contabilidad (CSV)</span>
-      <input type="file" accept=".csv" (change)="onFile($event, 'contabilidad')" />
-    </label>
+    <app-file-upload
+      label="Facturas (CSV)"
+      (fileChange)="onFile($event, 'facturas')"
+    />
+    <app-file-upload
+      label="Contabilidad (CSV)"
+      (fileChange)="onFile($event, 'contabilidad')"
+    />
   </div>
 
   <div class="actions">
     <button class="btn" [disabled]="cargando()" (click)="procesar()">
-      {{ cargando() ? 'Procesando…' : 'Procesar conciliación' }}
+      {{ cargando() ? "Procesando…" : "Procesar conciliación" }}
     </button>
   </div>
 
@@ -37,7 +38,9 @@
       <span class="summary__label">Correctas</span>
     </div>
     <div class="summary__item summary__item--bad">
-      <span class="summary__value">{{ r.resumen.facturas_con_inconsistencia }}</span>
+      <span class="summary__value">{{
+        r.resumen.facturas_con_inconsistencia
+      }}</span>
       <span class="summary__label">Con inconsistencia</span>
     </div>
   </div>
@@ -67,7 +70,9 @@
           <tr>
             @for (header of group.headers; track header.id) {
               <th [class.num]="esNum(header.column.id)">
-                <ng-container *flexRenderHeader="header; let value">{{ value }}</ng-container>
+                <ng-container *flexRenderHeader="header; let value">{{
+                  value
+                }}</ng-container>
               </th>
             }
           </tr>
@@ -78,7 +83,9 @@
           <tr>
             @for (cell of row.getAllCells(); track cell.id) {
               <td [class.num]="esNum(cell.column.id)">
-                <ng-container *flexRenderCell="cell; let value">{{ value }}</ng-container>
+                <ng-container *flexRenderCell="cell; let value">{{
+                  value
+                }}</ng-container>
               </td>
             }
           </tr>
@@ -91,10 +98,18 @@
     <span class="pagination__info">
       Página {{ pagination().pageIndex + 1 }} de {{ totalPaginas() }}
     </span>
-    <button class="chip" [disabled]="!puedeAnterior()" (click)="table.previousPage()">
+    <button
+      class="chip"
+      [disabled]="!puedeAnterior()"
+      (click)="table.previousPage()"
+    >
       Anterior
     </button>
-    <button class="chip" [disabled]="!puedeSiguiente()" (click)="table.nextPage()">
+    <button
+      class="chip"
+      [disabled]="!puedeSiguiente()"
+      (click)="table.nextPage()"
+    >
       Siguiente
     </button>
   </div>

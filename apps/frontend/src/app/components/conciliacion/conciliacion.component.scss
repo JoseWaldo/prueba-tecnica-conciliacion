@@ -26,16 +26,9 @@
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-bottom: var(--space-3);
-}
 
-.field {
-  display: flex;
-  flex: 1 1 260px;
-  flex-direction: column;
-  gap: var(--space-1);
-
-  &__label {
-    font-weight: 700;
+  app-file-upload {
+    flex: 1 1 260px;
   }
 }
 

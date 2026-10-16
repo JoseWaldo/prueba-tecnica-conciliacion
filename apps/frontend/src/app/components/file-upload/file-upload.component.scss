@@ -1,0 +1,141 @@
+:host {
+  display: block;
+}
+
+$teal: #1f6f6b;
+$coral: #f26b3a;
+$ink: #1a1a1a;
+$muted: #9a9a9a;
+$card-bg: #f7f4ec;
+$card-border: #ece7da;
+
+.upload {
+  display: flex;
+  flex-direction: column;
+
+  &__label {
+    margin-bottom: var(--space-1);
+    font-weight: 700;
+    color: var(--color-fg);
+  }
+}
+
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 20px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 24px;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba($teal, 0.25);
+  }
+
+  &.dragging {
+    background: #e9efe9;
+    border: 2px dashed $teal;
+    padding: 31px 19px;
+  }
+}
+
+.drop-illustration {
+  display: block;
+  width: 90px;
+  height: auto;
+}
+
+.drop-folder {
+  fill: var(--color-primary);
+}
+
+.drop-arrow {
+  stroke: var(--color-primary-700);
+}
+
+.drop-title {
+  margin: 18px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.drop-sub {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: $muted;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border-radius: 12px;
+}
+
+.file-icon {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: $ink;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &--error {
+    color: $coral;
+  }
+}
+
+.file-meta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: $muted;
+
+  &--error {
+    color: $coral;
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: var(--color-bg);
+  border: 1px solid #dddddd;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
