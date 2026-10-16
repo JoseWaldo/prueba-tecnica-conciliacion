@@ -73,32 +73,8 @@
   gap: var(--space-3);
   margin-bottom: var(--space-3);
 
-  &__item {
-    display: flex;
-    flex: 1 1 180px;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-3);
-    background: var(--color-bg);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-
-    &--ok .summary__value {
-      color: var(--color-secondary-600);
-    }
-
-    &--bad .summary__value {
-      color: #b54100;
-    }
-  }
-
-  &__value {
-    font-size: 32px;
-    font-weight: 700;
-  }
-
-  &__label {
-    color: var(--color-fg-muted);
+  app-radio-card {
+    flex: 1 1 200px;
   }
 }
 
@@ -119,11 +95,6 @@
 
   &:hover {
     background: var(--color-surface);
-  }
-
-  &--active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
   }
 }
 
@@ -176,6 +147,7 @@
   align-items: center;
   gap: var(--space-2);
   margin-top: var(--space-3);
+  margin-bottom: var(--space-5);
 
   &__info {
     margin-right: auto;

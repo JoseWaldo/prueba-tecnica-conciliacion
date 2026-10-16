@@ -1,0 +1,39 @@
+<label
+  class="card"
+  [class.card--selected]="checked()"
+  [class.card--disabled]="disabled()"
+  [class.card--lg]="size() === 'lg'"
+  [class.card--no-indicator]="!showIndicator()"
+  [style.--accent-color]="accentColor()"
+>
+  <span class="card__accent" aria-hidden="true"></span>
+
+  <input
+    class="card__input"
+    type="radio"
+    [name]="name()"
+    [value]="value()"
+    [checked]="checked()"
+    [disabled]="disabled()"
+    (change)="onChange()"
+  />
+
+  <span class="card__row">
+    @if (showIndicator()) {
+      <span class="card__indicator" aria-hidden="true"></span>
+    }
+    <span class="card__text">
+      <span class="card__title">{{ title() }}</span>
+      @if (subtitle(); as s) {
+        <span class="card__subtitle">{{ s }}</span>
+      }
+    </span>
+    <span class="card__icon" aria-hidden="true"><ng-content select="[icon]"></ng-content></span>
+  </span>
+
+  @if (actionLabel(); as label) {
+    <button type="button" class="card__action" (click)="onActionClick($event)">
+      {{ label }}
+    </button>
+  }
+</label>

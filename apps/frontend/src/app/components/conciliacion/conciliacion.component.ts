@@ -1,22 +1,26 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ColumnFilter, FlexRender, injectTable } from '@tanstack/angular-table';
-import { COLUMNAS_NUMERICAS, FILTROS } from '../../constants/conciliacion.constants';
+import { COLUMNAS_NUMERICAS } from '../../constants/conciliacion.constants';
 import { Filtro, ResultadoConciliacion } from '../../models/conciliacion.model';
 import { ConciliacionService } from '../../services/conciliacion.service';
+import { ToastService } from '../../services/toast.service';
+import { numero } from '../../utils/format';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
+import { RadioCardComponent } from '../radio-card/radio-card.component';
 import { columns, features } from './table.config';
 
 @Component({
   selector: 'app-conciliacion',
-  imports: [CommonModule, FlexRender, FileUploadComponent],
+  imports: [CommonModule, FlexRender, FileUploadComponent, RadioCardComponent],
   templateUrl: './conciliacion.component.html',
   styleUrl: './conciliacion.component.scss',
 })
 export class ConciliacionComponent {
   private service = inject(ConciliacionService);
+  private toast = inject(ToastService);
 
-  filtros = FILTROS;
+  readonly numero = numero;
 
   facturas: File | null = null;
   contabilidad: File | null = null;
@@ -59,8 +63,9 @@ export class ConciliacionComponent {
     return COLUMNAS_NUMERICAS.has(id);
   }
 
-  setFiltro(f: Filtro): void {
-    this.columnFilters.set(f === 'Todas' ? [] : [{ id: 'estado', value: f }]);
+  setFiltro(f: string): void {
+    const filtro = f as Filtro;
+    this.columnFilters.set(filtro === 'Todas' ? [] : [{ id: 'estado', value: filtro }]);
   }
 
   onBusqueda(event: Event): void {
@@ -86,12 +91,17 @@ export class ConciliacionComponent {
       next: (r) => {
         this.resultado.set(r);
         this.cargando.set(false);
+        this.toast.success(
+          'Conciliación completada',
+          `${r.resumen.total_facturas} facturas · ${r.resumen.facturas_correctas} correctas · ${r.resumen.facturas_con_inconsistencia} con inconsistencia`
+        );
       },
       error: () => {
-        this.error.set(
-          'No se pudo procesar. Verifica que el backend esté corriendo en http://localhost:5000.'
-        );
         this.cargando.set(false);
+        this.toast.error(
+          'Error al procesar',
+          'No se pudo completar la conciliación. Verifica que el backend esté disponible.'
+        );
       },
     });
   }

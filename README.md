@@ -52,9 +52,11 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 │       │   ├── components/      # Pantalla y elementos de UI reutilizables
 │       │   │   ├── conciliacion/  # Pantalla principal + config de la tabla
 │       │   │   ├── file-upload/   # Componente de subida con drag and drop
+│       │   │   ├── toast/         # Notificaciones (toasts) reutilizables
+│       │   │   ├── radio-card/    # Card seleccionable (radio) reutilizable
 │       │   │   └── estado-badge/  # Badge de estado
-│       │   ├── models/          # Interfaces y tipos (contrato de la API)
-│       │   ├── services/        # Comunicación con el backend
+│       │   ├── models/          # Interfaces y tipos (contrato de la API y toast)
+│       │   ├── services/        # Comunicación con el backend y toast service
 │       │   ├── constants/       # Constantes de la UI
 │       │   ├── utils/           # Utilidades (formato de números)
 │       │   └── app.*            # Shell de la aplicación
@@ -299,6 +301,11 @@ Errores de validación devuelven `400` con `{"error": "<mensaje>"}`.
   registro global en `app.config.ts`.
 - **Estilos del frontend** con SCSS nativo (sin Tailwind): los tokens de diseño
   (colores, tipografía, espaciado) viven en `src/styles.scss` como variables CSS.
+- **Notificaciones con `ToastService`** (signal-based, `providedIn: 'root'`) y un
+  contenedor `app-toast` montado en el shell (`app.component`): variantes
+  `success`/`error`/`info`/`warning` alineadas a los tokens, con auto-cierre a
+  los 6 s, cierre manual con fade-out y accesibilidad (`role="status"`,
+  `aria-live="polite"`).
 - Pruebas con `pytest` usando el cliente de test de Flask y los CSV de `data/`.
 
 ## Funcionalidades no completadas
@@ -578,5 +585,53 @@ lo generado o modificado con ayuda de agentes de IA:
   - `apps/frontend/package.json`
   - `apps/frontend/bun.lock`
   - `apps/frontend/src/app/components/file-upload/*` (nuevo)
+  - `apps/frontend/src/app/components/conciliacion/conciliacion.component.{ts,html,scss}`
+  - `README.md`
+
+### 2026-10-16 — Componente de notificaciones (toast)
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se agregó un sistema de notificaciones reutilizable alineado al
+  sistema de diseño: `ToastService` (basado en signals) y el contenedor
+  `app-toast` montado en `app.component`. Soporta variantes `success`, `error`,
+  `info` y `warning` con icono y color por variante, auto-cierre a los 6 s,
+  cierre manual con fade-out de 200 ms, animación de entrada (fade + slide) y
+  accesibilidad (`role="status"`, `aria-live="polite"`). Se integró en la
+  pantalla de conciliación para notificar éxito/error al procesar la respuesta
+  del backend.
+- **Archivos afectados:**
+  - `apps/frontend/src/app/models/toast.model.ts` (nuevo)
+  - `apps/frontend/src/app/services/toast.service.ts` (nuevo)
+  - `apps/frontend/src/app/components/toast/*` (nuevo)
+  - `apps/frontend/src/app/app.component.{ts,html}`
+  - `apps/frontend/src/app/components/conciliacion/conciliacion.component.ts`
+  - `README.md`
+
+### 2026-10-16 — Componente reutilizable de card seleccionable (radio-card)
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se creó `app-radio-card`, una card seleccionable reutilizable que
+  envuelve un `<input type="radio">` real (oculto visualmente) dentro de un
+  `<label>`, con barra lateral de acento configurable (`secondary`/`primary`/
+  `accent`/`none`), indicador de selección, bloque título/subtítulo, slot de
+  icono (`ng-content select="[icon]"`) y botón de acción inferior opcional
+  (`actionLabel` + evento `action`). Soporta uso en grupo (mismo `name`), modo
+  controlado (`checked` + `change`), estado `disabled` y accesibilidad
+  (focus-visible con anillo, `stopPropagation` en el botón, `aria-hidden` en el
+  icono decorativo).
+- **Archivos afectados:**
+  - `apps/frontend/src/app/components/radio-card/*` (nuevo)
+  - `README.md`
+
+### 2026-10-16 — Integración de radio-card en el resumen de conciliación
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se reemplazaron las tarjetas estáticas del resumen por
+  `app-radio-card` reutilizando el componente creado. Las tres cards (Facturas,
+  Correctas y Con inconsistencia) actúan ahora como filtro de la tabla: al
+  seleccionar una, se filtra el detalle (misma lógica que los chips anteriores,
+  que se eliminaron por redundancia). Se conservó el buscador. La selección
+  queda ligada al estado `columnFilters` existente (`filtro()`/`setFiltro`).
+- **Archivos afectados:**
   - `apps/frontend/src/app/components/conciliacion/conciliacion.component.{ts,html,scss}`
   - `README.md`
