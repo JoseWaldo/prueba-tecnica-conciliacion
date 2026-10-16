@@ -7,12 +7,22 @@ services:
     command: sh -c "pip install -r requirements.txt && python app.py"
     ports:
       - "5000:5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
   frontend:
     image: oven/bun:1
     working_dir: /app
     volumes:
       - ./apps/frontend:/app
+    environment:
+      API_PROXY_TARGET: http://backend:5000
     command: sh -c "bun install && bun run start -- --host 0.0.0.0"
     ports:
       - "4200:4200"
+    depends_on:
+      backend:
+        condition: service_healthy
