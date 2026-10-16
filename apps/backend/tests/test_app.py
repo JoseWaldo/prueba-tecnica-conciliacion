@@ -1,10 +1,23 @@
+from io import BytesIO
 from pathlib import Path
 
 import pytest
 
 from app import app
 
-DOCS = Path(__file__).resolve().parents[3] / "docs"
+DATA = Path(__file__).resolve().parents[3] / "data"
+
+FACTURAS_VALIDAS = (
+    "id_factura,nit_proveedor,fecha_factura,concepto,base_gravable,tarifa_iva,"
+    "valor_iva,tarifa_retencion,valor_retencion,total_factura\n"
+    "FAC-1,9001,2026-01-01,Concepto,1000,0.19,190,0,0,1190\n"
+).encode()
+
+CONTABILIDAD_VALIDA = (
+    "id_factura,fecha_contabilizacion,cuenta_contable,centro_costo,"
+    "valor_debito,valor_credito,estado\n"
+    "FAC-1,2026-01-02,512010,CC1001,1190,1190,Contabilizada\n"
+).encode()
 
 
 @pytest.fixture
@@ -14,12 +27,22 @@ def client():
 
 
 def _subir(client):
-    with (DOCS / "facturas.csv").open("rb") as f1, (DOCS / "contabilidad.csv").open("rb") as f2:
+    with (DATA / "facturas.csv").open("rb") as f1, (DATA / "contabilidad.csv").open("rb") as f2:
         return client.post(
             "/api/conciliacion",
             data={"facturas": f1, "contabilidad": f2},
             content_type="multipart/form-data",
         )
+
+
+def _post(client, facturas=None, contabilidad=None, nombre_facturas="facturas.csv",
+          nombre_contabilidad="contabilidad.csv"):
+    data = {}
+    if facturas is not None:
+        data["facturas"] = (BytesIO(facturas), nombre_facturas)
+    if contabilidad is not None:
+        data["contabilidad"] = (BytesIO(contabilidad), nombre_contabilidad)
+    return client.post("/api/conciliacion", data=data, content_type="multipart/form-data")
 
 
 def test_health(client):
@@ -48,5 +71,26 @@ def test_conciliacion_casos(client):
 
 
 def test_conciliacion_sin_archivos(client):
-    response = client.post("/api/conciliacion", data={}, content_type="multipart/form-data")
+    response = _post(client)
     assert response.status_code == 400
+    assert "Falta el archivo" in response.get_json()["error"]
+
+
+def test_conciliacion_extension_invalida(client):
+    response = _post(client, facturas=FACTURAS_VALIDAS, contabilidad=CONTABILIDAD_VALIDA,
+                     nombre_facturas="facturas.txt")
+    assert response.status_code == 400
+    assert "CSV" in response.get_json()["error"]
+
+
+def test_conciliacion_cabeceras_invalidas(client):
+    response = _post(client, facturas=b"id_factura,nit_proveedor\nFAC-1,9001\n",
+                     contabilidad=CONTABILIDAD_VALIDA)
+    assert response.status_code == 400
+    assert "Columnas faltantes" in response.get_json()["error"]
+
+
+def test_conciliacion_archivo_vacio(client):
+    response = _post(client, facturas=b"", contabilidad=CONTABILIDAD_VALIDA)
+    assert response.status_code == 400
+    assert "vacío" in response.get_json()["error"]
