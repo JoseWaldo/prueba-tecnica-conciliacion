@@ -1,0 +1,12 @@
+# Copia este archivo como `backend.tf` y configura tu bucket de estado remoto
+# antes del primer `terraform init`. Si no lo configuras, Terraform usa estado
+# local por defecto (no recomendado para equipos).
+
+terraform {
+  backend "s3" {
+    bucket  = "TODO-nombre-bucket-estado"
+    key     = "conciliacion/prod/terraform.tfstate"
+    region  = "us-east-1"
+    encrypt = true
+  }
+}
