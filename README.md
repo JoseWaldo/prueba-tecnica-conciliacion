@@ -59,6 +59,10 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 ├── data/                        # Archivos de prueba (CSV)
 │   ├── facturas.csv
 │   └── contabilidad.csv
+├── .github/
+│   └── workflows/               # Integración continua (GitHub Actions)
+│       ├── backend.yml          # pytest del backend
+│       └── frontend.yml         # build y tests del frontend
 ├── docs/
 │   └── caso-de-estudio.md       # Enunciado y reglas de negocio
 ├── AGENTS.md                    # Convenciones de trabajo del repositorio
@@ -128,6 +132,23 @@ Desde `apps/backend`:
 Las pruebas cubren: health check, resumen de conciliación, clasificación de
 casos (duplicados, IVA, sin registro contable, campos vacíos) y validaciones
 (archivos faltantes, extensión inválida, cabeceras faltantes, archivo vacío).
+
+Desde `apps/frontend`:
+
+```powershell
+bun run test -- --watch=false --browsers=ChromeHeadless
+```
+
+## Integración continua (GitHub Actions)
+
+El repositorio define dos workflows que se ejecutan en cada `push` y `pull_request`
+sobre `main`, filtrados por rutas para solo correr lo que cambió:
+
+- **Backend** (`.github/workflows/backend.yml`): instala dependencias con `pip`
+  y ejecuta `python -m pytest` sobre Python 3.12.
+- **Frontend** (`.github/workflows/frontend.yml`): instala dependencias con `bun`,
+  compila (`bun run build`) y ejecuta las pruebas unitarias con Karma
+  (`ChromeHeadless`).
 
 ## Archivos de prueba (CSV)
 
@@ -342,4 +363,20 @@ lo generado o modificado con ayuda de agentes de IA:
   - `apps/frontend/src/app/utils/format.ts` (nuevo)
   - `apps/frontend/src/app/services/conciliacion.service.ts`
   - `apps/frontend/src/app/estado-badge.component.ts` (eliminado)
+  - `README.md`
+
+### 2026-10-16 — Integración continua con GitHub Actions
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se agregaron workflows de GitHub Actions para validar cada cambio
+  de forma automática, filtrados por rutas del monorepo.
+
+  - **Backend** (`.github/workflows/backend.yml`): instala dependencias con
+    `pip` y corre `pytest` sobre Python 3.12.
+  - **Frontend** (`.github/workflows/frontend.yml`): instala dependencias con
+    `bun`, compila la aplicación y corre las pruebas unitarias (Karma +
+    `ChromeHeadless`).
+- **Archivos afectados:**
+  - `.github/workflows/backend.yml` (nuevo)
+  - `.github/workflows/frontend.yml` (nuevo)
   - `README.md`
