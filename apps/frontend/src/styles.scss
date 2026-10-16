@@ -1,1 +1,53 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  /* Color */
+  --color-primary: #fdda24;
+  --color-primary-300: #dcbf35;
+  --color-primary-700: #705300;
+  --color-secondary: #00c389;
+  --color-secondary-600: #008552;
+  --color-accent: #ff7f41;
+  --color-bg: #ffffff;
+  --color-surface: #f4f4f4;
+  --color-fg: #000000;
+  --color-fg-body: #212529;
+  --color-fg-muted: #58595b;
+
+  /* Tipografía */
+  --font-sans: "Open Sans", OpenSans, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-size-base: 16px;
+
+  /* Espaciado */
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --container: 1140px;
+  --gutter: 15px;
+
+  /* Radios */
+  --radius-sm: 3px;
+  --radius-md: 10px;
+  --radius-lg: 15px;
+  --radius-xl: 24px;
+  --radius-full: 40px;
+
+  /* Sombras */
+  --shadow-xs: 0 0 4px 0 rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 8px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 3px 12px 0 rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 16px 0 rgba(44, 42, 41, 0.16), 0 1px 10px 0 rgba(43, 42, 41, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--color-fg);
+  background: var(--color-bg);
+}
