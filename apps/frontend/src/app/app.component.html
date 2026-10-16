@@ -61,36 +61,26 @@
     <div class="table-wrap">
       <table class="table">
         <thead>
-          <tr>
-            <th>Factura</th>
-            <th>NIT</th>
-            <th>Fecha</th>
-            <th>Concepto</th>
-            <th class="num">Base</th>
-            <th class="num">IVA</th>
-            <th class="num">Retención</th>
-            <th class="num">Total</th>
-            <th>Estado</th>
-            <th>Inconsistencias</th>
-          </tr>
+          @for (group of table.getHeaderGroups(); track group.id) {
+            <tr>
+              @for (header of group.headers; track header.id) {
+                <th [class.num]="esNum(header.column.id)">
+                  <ng-container *flexRenderHeader="header; let value">{{ value }}</ng-container>
+                </th>
+              }
+            </tr>
+          }
         </thead>
         <tbody>
-          <tr *ngFor="let d of detalle">
-            <td>{{ d.id_factura }}</td>
-            <td>{{ d.nit_proveedor }}</td>
-            <td>{{ d.fecha_factura }}</td>
-            <td>{{ d.concepto }}</td>
-            <td class="num">{{ d.base_gravable | number }}</td>
-            <td class="num">{{ d.valor_iva | number }}</td>
-            <td class="num">{{ d.valor_retencion | number }}</td>
-            <td class="num">{{ d.total_factura | number }}</td>
-            <td>
-              <span class="badge" [class.badge--bad]="d.estado === 'Con inconsistencia'">
-                {{ d.estado }}
-              </span>
-            </td>
-            <td>{{ d.inconsistencias.join(', ') }}</td>
-          </tr>
+          @for (row of table.getRowModel().rows; track row.id) {
+            <tr>
+              @for (cell of row.getAllCells(); track cell.id) {
+                <td [class.num]="esNum(cell.column.id)">
+                  <ng-container *flexRenderCell="cell; let value">{{ value }}</ng-container>
+                </td>
+              }
+            </tr>
+          }
         </tbody>
       </table>
     </div>
