@@ -1,0 +1,101 @@
+<section class="hero">
+  <h1>Conciliador de facturas y retenciones</h1>
+  <p class="hero__sub">
+    Carga los archivos de facturas y contabilidad para validar las reglas de negocio y revisar las inconsistencias.
+  </p>
+</section>
+
+<section class="card">
+  <div class="grid">
+    <label class="field">
+      <span class="field__label">Facturas (CSV)</span>
+      <input type="file" accept=".csv" (change)="onFile($event, 'facturas')" />
+    </label>
+    <label class="field">
+      <span class="field__label">Contabilidad (CSV)</span>
+      <input type="file" accept=".csv" (change)="onFile($event, 'contabilidad')" />
+    </label>
+  </div>
+
+  <div class="actions">
+    <button class="btn" [disabled]="cargando()" (click)="procesar()">
+      {{ cargando() ? 'Procesando…' : 'Procesar conciliación' }}
+    </button>
+  </div>
+
+  <p class="error" *ngIf="error()">{{ error() }}</p>
+</section>
+
+<section *ngIf="resultado() as r">
+  <div class="summary">
+    <div class="summary__item">
+      <span class="summary__value">{{ r.resumen.total_facturas }}</span>
+      <span class="summary__label">Facturas</span>
+    </div>
+    <div class="summary__item summary__item--ok">
+      <span class="summary__value">{{ r.resumen.facturas_correctas }}</span>
+      <span class="summary__label">Correctas</span>
+    </div>
+    <div class="summary__item summary__item--bad">
+      <span class="summary__value">{{ r.resumen.facturas_con_inconsistencia }}</span>
+      <span class="summary__label">Con inconsistencia</span>
+    </div>
+  </div>
+
+  <div class="filters">
+    <input
+      class="search"
+      type="search"
+      placeholder="Buscar factura, NIT, concepto…"
+      [value]="globalFilter()"
+      (input)="onBusqueda($event)"
+    />
+    <button
+      *ngFor="let f of filtros"
+      class="chip"
+      [class.chip--active]="filtro() === f"
+      (click)="setFiltro(f)"
+    >
+      {{ f }}
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        @for (group of table.getHeaderGroups(); track group.id) {
+          <tr>
+            @for (header of group.headers; track header.id) {
+              <th [class.num]="esNum(header.column.id)">
+                <ng-container *flexRenderHeader="header; let value">{{ value }}</ng-container>
+              </th>
+            }
+          </tr>
+        }
+      </thead>
+      <tbody>
+        @for (row of table.getRowModel().rows; track row.id) {
+          <tr>
+            @for (cell of row.getAllCells(); track cell.id) {
+              <td [class.num]="esNum(cell.column.id)">
+                <ng-container *flexRenderCell="cell; let value">{{ value }}</ng-container>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <span class="pagination__info">
+      Página {{ pagination().pageIndex + 1 }} de {{ totalPaginas() }}
+    </span>
+    <button class="chip" [disabled]="!puedeAnterior()" (click)="table.previousPage()">
+      Anterior
+    </button>
+    <button class="chip" [disabled]="!puedeSiguiente()" (click)="table.nextPage()">
+      Siguiente
+    </button>
+  </div>
+</section>

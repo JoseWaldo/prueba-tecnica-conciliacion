@@ -30,14 +30,30 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 .
 ├── apps/
 │   ├── backend/                 # API REST en Flask
-│   │   ├── app.py               # App factory y arranque (puerto 5000)
-│   │   ├── routes.py            # Blueprint / endpoints HTTP
-│   │   ├── services.py          # Lógica de negocio y validaciones
-│   │   ├── models.py            # Dataclass Factura
+│   │   ├── app.py               # Punto de entrada y arranque (puerto 5000)
 │   │   ├── requirements.txt     # Dependencias de Python
+│   │   ├── api/                 # Endpoints HTTP (blueprints)
+│   │   │   ├── __init__.py      # Re-exporta los blueprints
+│   │   │   ├── health.py        # GET /api/health
+│   │   │   └── conciliacion.py  # POST /api/conciliacion
+│   │   ├── domain/              # Modelos, errores y constantes (sin dependencias)
+│   │   │   ├── models.py        # Dataclass Factura
+│   │   │   ├── errors.py        # ValidacionError
+│   │   │   └── constants.py     # Cabeceras de CSV, estados y mensajes
+│   │   ├── services/            # Lógica de negocio y lectura de archivos
+│   │   │   ├── csv_reader.py    # Parseo y validación de CSV
+│   │   │   └── conciliacion.py  # Reglas de conciliación
 │   │   └── tests/               # Pruebas con pytest
 │   └── frontend/                # Angular (bun)
-│       ├── src/
+│       ├── src/app/
+│       │   ├── components/      # Pantalla y elementos de UI reutilizables
+│       │   │   ├── conciliacion/  # Pantalla principal + config de la tabla
+│       │   │   └── estado-badge/  # Badge de estado
+│       │   ├── models/          # Interfaces y tipos (contrato de la API)
+│       │   ├── services/        # Comunicación con el backend
+│       │   ├── constants/       # Constantes de la UI
+│       │   ├── utils/           # Utilidades (formato de números)
+│       │   └── app.*            # Shell de la aplicación
 │       ├── angular.json
 │       └── package.json
 ├── data/                        # Archivos de prueba (CSV)
@@ -88,10 +104,9 @@ bun run start
 
 La aplicación queda disponible en `http://localhost:4200`.
 
-> **Importante:** el frontend aún es el scaffolding por defecto de Angular
-> (pantalla "Hello"). Ver [Funcionalidades no completadas](#funcionalidades-no-completadas).
-> La conciliación se valida de extremo a extremo desde el backend con
-> `pytest` o llamando directamente a la API.
+> **Importante:** el frontend consume la API a través del proxy de desarrollo
+> (ver `apps/frontend/proxy.conf.json`), por lo que el backend debe estar
+> corriendo en `http://localhost:5000`.
 
 ### Docker (opcional)
 
@@ -201,20 +216,25 @@ Errores de validación devuelven `400` con `{"error": "<mensaje>"}`.
 
 ## Decisiones técnicas
 
-- **Backend modular plano** (`app.py`, `routes.py`, `services.py`, `models.py`)
-  para mantener el código simple y trazable en el alcance de la prueba.
-- **Capas separadas**: `routes.py` actúa como orquestador HTTP (valida request,
-  invoca el servicio y mapea excepciones a respuestas HTTP); `services.py`
-  concentra validación y reglas de negocio; `models.py` usa `dataclass`.
+- **Backend por capas/paquetes** (`api/`, `services/`, `domain/`): cada capa
+  importa solo de la capa inmediatamente inferior (`app.py → api/ → services/ →
+  domain/`), sin dependencias circulares.
+- **Blueprints separados por área** (`api/health.py`, `api/conciliacion.py`),
+  registrados en `app.py` y re-exportados desde `api/__init__.py`.
+- **Constantes centralizadas** en `domain/constants.py` (cabeceras de CSV,
+  estados y mensajes de inconsistencia) para reutilizarlas en servicios y tests.
+- **Lectura de CSV desacoplada** de las reglas de negocio:
+  `services/csv_reader.py` (parseo y validaciones de archivo) vs
+  `services/conciliacion.py` (conciliación).
+- **Frontend por responsabilidades**: `components/` (pantalla y elementos de UI),
+  `models/` (contrato de la API), `services/` (HTTP), `constants/` (configuración
+  de UI) y `utils/` (formato); `app.component` actúa solo como shell.
 - Validaciones centralizadas en `ValidacionError`, convertidas a `400`.
 - `flask-cors` para permitir el consumo desde el frontend Angular.
 - Pruebas con `pytest` usando el cliente de test de Flask y los CSV de `data/`.
 
 ## Funcionalidades no completadas
 
-- **Frontend:** sigue siendo el scaffolding por defecto de Angular; no se
-  implementaron la pantalla de carga de archivos, el resumen, la tabla con
-  filtro por estado ni el consumo de la API.
 - La comparación de totales no valida explícitamente la retención esperada
   (`base_gravable × tarifa_retencion`) como causa independiente.
 
@@ -287,3 +307,39 @@ lo generado o modificado con ayuda de agentes de IA:
   - `README.md`
   - `AGENTS.md`
   - `docs/declaracion-uso-de-ia.md` (contenido trasladado al `README.md`)
+
+### 2026-10-16 — Reorganización de backend y frontend por capas
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** reorganización de la estructura del proyecto para separar
+  responsabilidades y favorecer la reutilización, sin aumentar la complejidad.
+
+  - **Backend:** se pasó de módulos planos (`app.py`, `routes.py`,
+    `services.py`, `models.py`) a paquetes por capa: `api/` (blueprints
+    `health.py` y `conciliacion.py`), `domain/` (`models.py`, `errors.py`,
+    `constants.py`) y `services/` (`csv_reader.py`, `conciliacion.py`). Las
+    constantes (cabeceras de CSV, estados y mensajes) quedaron centralizadas en
+    `domain/constants.py`; la lectura de CSV se desacopló de las reglas de
+    negocio.
+  - **Frontend:** se separó la pantalla en `components/conciliacion/` (componente,
+    plantilla, estilos y configuración de la tabla TanStack), se movió
+    `estado-badge` a `components/estado-badge/`, se extrajeron los tipos a
+    `models/`, las constantes de UI a `constants/` y el formateo de números a
+    `utils/`; `app.component` quedó como shell (header + `<app-conciliacion />`).
+- **Archivos afectados:**
+  - `apps/backend/app.py`
+  - `apps/backend/api/{__init__,health,conciliacion}.py` (nuevos)
+  - `apps/backend/domain/{__init__,models,errors,constants}.py` (nuevos)
+  - `apps/backend/services/{__init__,csv_reader,conciliacion}.py` (nuevos)
+  - `apps/backend/routes.py`, `apps/backend/services.py`, `apps/backend/models.py`
+    (eliminados)
+  - `apps/frontend/src/app/app.component.{ts,html,scss}`
+  - `apps/frontend/src/app/components/conciliacion/*` (nuevos)
+  - `apps/frontend/src/app/components/estado-badge/estado-badge.component.ts`
+    (movido)
+  - `apps/frontend/src/app/models/conciliacion.model.ts` (nuevo)
+  - `apps/frontend/src/app/constants/conciliacion.constants.ts` (nuevo)
+  - `apps/frontend/src/app/utils/format.ts` (nuevo)
+  - `apps/frontend/src/app/services/conciliacion.service.ts`
+  - `apps/frontend/src/app/estado-badge.component.ts` (eliminado)
+  - `README.md`
