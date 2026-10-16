@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ColumnFilter, FlexRender, injectTable } from '@tanstack/angular-table';
 import { COLUMNAS_NUMERICAS } from '../../constants/conciliacion.constants';
@@ -96,13 +97,18 @@ export class ConciliacionComponent {
           `${r.resumen.total_facturas} facturas · ${r.resumen.facturas_correctas} correctas · ${r.resumen.facturas_con_inconsistencia} con inconsistencia`
         );
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.cargando.set(false);
-        this.toast.error(
-          'Error al procesar',
-          'No se pudo completar la conciliación. Verifica que el backend esté disponible.'
-        );
+        const mensaje = this.extraerMensajeError(err);
+        this.error.set(mensaje);
+        this.toast.error('Error al procesar', mensaje);
       },
     });
+  }
+
+  private extraerMensajeError(err: HttpErrorResponse): string {
+    const mensaje = (err.error as { error?: unknown } | null)?.error;
+    if (typeof mensaje === 'string' && mensaje.trim()) return mensaje;
+    return 'No se pudo completar la conciliación. Por favor, inténtalo de nuevo más tarde.';
   }
 }

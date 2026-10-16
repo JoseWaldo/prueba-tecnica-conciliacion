@@ -251,7 +251,15 @@ Respuesta (`200`):
 }
 ```
 
-Errores de validación devuelven `400` con `{"error": "<mensaje>"}`.
+Los errores devuelven siempre un JSON con el formato `{"error": "<mensaje>"}`,
+con mensajes redactados en lenguaje claro y dirigidos al usuario final:
+
+- `400` — errores de validación (archivo faltante, extensión no `.csv`,
+  codificación no soportada, archivo vacío o columnas requeridas faltantes).
+- `404` — recurso o ruta inexistente.
+- `405` — método HTTP no permitido para el recurso.
+- `413` — archivo demasiado grande.
+- `500` — error inesperado del servidor.
 
 ## Reglas de negocio implementadas
 
@@ -315,12 +323,13 @@ Errores de validación devuelven `400` con `{"error": "<mensaje>"}`.
 
 ## Declaración de uso de IA generativa
 
-Se utilizó **Inteligencia Artificial Generativa** en este proyecto. Registro de
-lo generado o modificado con ayuda de agentes de IA:
+Se utilizó **opencode** (modelo **DeepSeek**, capa gratuita) como asistente de
+programación. Su uso se centró en infraestructura, CI/CD, inicialización del
+proyecto, organización de carpetas, arquitectura, configuración, redacción de
+commits y apoyo en los pull requests. Registro por etapas:
 
 ### 2026-10-15 — Estructura inicial del repositorio
 
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
 - **Resumen:** creación de la estructura inicial del monorepo (backend Flask +
   frontend Angular), archivos de ejemplo, `AGENTS.md`, `README.md`,
   `.gitignore` y `compose.yaml`.
@@ -333,59 +342,8 @@ lo generado o modificado con ayuda de agentes de IA:
   - `.gitignore`
   - `compose.yaml`
 
-### 2026-10-15 — Backend de conciliación de facturas
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** refactorización de la estructura del backend a módulos planos
-  (`app.py`, `routes.py`, `services.py`, `models.py`) y desarrollo del endpoint
-  `POST /api/conciliacion` con las reglas de negocio (IVA esperado, total
-  esperado, campos vacíos, facturas duplicadas y sin registro contable),
-  clasificación por estado y pruebas con los CSV de ejemplo.
-- **Archivos afectados:**
-  - `apps/backend/app.py`
-  - `apps/backend/routes.py`
-  - `apps/backend/services.py`
-  - `apps/backend/models.py`
-  - `apps/backend/tests/test_app.py`
-  - `README.md`
-  - `compose.yaml`
-
-### 2026-10-16 — Validaciones de archivos y reorganización de capas
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** se agregaron validaciones al endpoint de conciliación (presencia
-  de archivos, extensión `.csv`, codificación, archivo vacío y cabeceras
-  obligatorias) mediante la excepción `ValidacionError`. Posteriormente se
-  consolidó toda la validación en la capa de servicios: `_validar_archivo` y el
-  manejo de `ValidacionError` pasaron de `routes.py` a `services.py`, dejando a
-  `routes.py` como orquestador puro. Se añadieron pruebas de validación y se
-  movieron los CSV de ejemplo de `docs/` a `data/` (actualizando la ruta en las
-  pruebas).
-- **Archivos afectados:**
-  - `apps/backend/routes.py`
-  - `apps/backend/services.py`
-  - `apps/backend/tests/test_app.py`
-  - `data/facturas.csv` (movido desde `docs/facturas.csv`)
-  - `data/contabilidad.csv` (movido desde `docs/contabilidad.csv`)
-
-### 2026-10-16 — Documentación: README, archivos de prueba y declaración de IA
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** reescritura del `README.md` con instrucciones reproducibles de
-  instalación y ejecución (versiones, dependencias, comandos y configuración),
-  supuestos, decisiones técnicas, funcionalidades no completadas, ubicación de
-  los archivos de prueba y la sección de declaración de uso de IA generativa.
-  Se movió el contenido de `docs/declaracion-uso-de-ia.md` al `README.md` y se
-  actualizó `AGENTS.md` para que el registro de uso de IA se haga dentro del
-  `README` en lugar del archivo separado.
-- **Archivos afectados:**
-  - `README.md`
-  - `AGENTS.md`
-  - `docs/declaracion-uso-de-ia.md` (contenido trasladado al `README.md`)
-
 ### 2026-10-16 — Reorganización de backend y frontend por capas
 
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
 - **Resumen:** reorganización de la estructura del proyecto para separar
   responsabilidades y favorecer la reutilización, sin aumentar la complejidad.
 
@@ -421,7 +379,6 @@ lo generado o modificado con ayuda de agentes de IA:
 
 ### 2026-10-16 — Integración continua con GitHub Actions
 
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
 - **Resumen:** se agregaron workflows de GitHub Actions para validar cada cambio
   de forma automática, filtrados por rutas del monorepo.
 
@@ -437,7 +394,6 @@ lo generado o modificado con ayuda de agentes de IA:
 
 ### 2026-10-16 — Infraestructura como código con Terraform
 
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
 - **Resumen:** se creó la carpeta `infra/` con la definición de la
   infraestructura AWS en Terraform, organizada en módulos reutilizables y un
   único entorno `prod` (rama `main`), y se desplegó en la cuenta AWS.
@@ -477,7 +433,6 @@ lo generado o modificado con ayuda de agentes de IA:
 
 ### 2026-10-16 — Configuración de la API del backend en el frontend
 
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
 - **Resumen:** se agregaron environments de Angular para apuntar el frontend a la
   URL de la API del backend en producción (antes usaba `/api` relativo con el
   proxy de desarrollo).
@@ -498,7 +453,6 @@ lo generado o modificado con ayuda de agentes de IA:
 
 ### 2026-10-16 — Despliegue continuo (CD) con GitHub Actions y OIDC
 
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
 - **Resumen:** se agregó despliegue continuo de la aplicación a AWS mediante
   GitHub Actions, autenticado con **OIDC** (sin secretos de larga duración).
 
@@ -519,7 +473,6 @@ lo generado o modificado con ayuda de agentes de IA:
 
 ### 2026-10-16 — Corrección de OIDC para el CD
 
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
 - **Resumen:** se corrigió la autenticación OIDC del CD, que fallaba con
   `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
 
@@ -533,105 +486,3 @@ lo generado o modificado con ayuda de agentes de IA:
 - **Archivos afectados:**
   - `infra/modules/cicd/{main,variables}.tf`
   - `infra/environments/prod/{main,variables}.tf`
-
-### 2026-10-16 — Integración de Tailwind CSS 4 en el frontend
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** se instaló Tailwind CSS 4 en el frontend Angular siguiendo la guía
-  oficial (PostCSS). Se agregaron las dependencias `tailwindcss`,
-  `@tailwindcss/postcss` y `postcss`, se creó `.postcssrc.json` registrando el
-  plugin `@tailwindcss/postcss` y se importó Tailwind en `src/styles.scss`
-  (`@import "tailwindcss";`). Verificado con `bun run build`.
-  *(Revertido el mismo día: ver la entrada siguiente.)*
-- **Archivos afectados:**
-  - `apps/frontend/package.json`
-  - `apps/frontend/bun.lock`
-  - `apps/frontend/.postcssrc.json` (nuevo)
-  - `apps/frontend/src/styles.scss`
-  - `README.md`
-
-### 2026-10-16 — Librería de iconos Lucide en el frontend
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** se instaló la librería de iconos **Lucide** para Angular
-  (`@lucide/angular`), que expone cada icono como componente standalone y
-  tree-shakeable (`LucideFileText`, `LucideUpload`, etc.). No requiere
-  configuración global en `app.config.ts`: cada icono se importa en el
-  componente donde se usa. Inicialmente se probó el paquete legacy
-  `lucide-angular` y se reemplazó por `@lucide/angular` (API actual v1).
-- **Archivos afectados:**
-  - `apps/frontend/package.json`
-  - `apps/frontend/bun.lock`
-  - `README.md`
-
-### 2026-10-16 — Eliminación de Tailwind y componente de subida de archivos
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:**
-  - **Eliminación de Tailwind:** se revirtió la integración de Tailwind CSS 4:
-    se quitó el `@import "tailwindcss";` de `src/styles.scss`, se eliminó
-    `.postcssrc.json` y se desinstalaron las dependencias `tailwindcss`,
-    `@tailwindcss/postcss` y `postcss`. El frontend vuelve a usar solo SCSS
-    nativo con variables CSS en `src/styles.scss`.
-  - **Componente de subida de archivos:** se creó
-    `apps/frontend/src/app/components/file-upload/`, un componente standalone
-    reutilizable con drag and drop, validación por extensión y tamaño máximo,
-    estado de error y accesibilidad (role/tabindex/teclado). Reemplaza a los
-    `<input type="file">` de la pantalla de conciliación (dos instancias:
-    facturas y contabilidad).
-- **Archivos afectados:**
-  - `apps/frontend/src/styles.scss`
-  - `apps/frontend/.postcssrc.json` (eliminado)
-  - `apps/frontend/package.json`
-  - `apps/frontend/bun.lock`
-  - `apps/frontend/src/app/components/file-upload/*` (nuevo)
-  - `apps/frontend/src/app/components/conciliacion/conciliacion.component.{ts,html,scss}`
-  - `README.md`
-
-### 2026-10-16 — Componente de notificaciones (toast)
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** se agregó un sistema de notificaciones reutilizable alineado al
-  sistema de diseño: `ToastService` (basado en signals) y el contenedor
-  `app-toast` montado en `app.component`. Soporta variantes `success`, `error`,
-  `info` y `warning` con icono y color por variante, auto-cierre a los 6 s,
-  cierre manual con fade-out de 200 ms, animación de entrada (fade + slide) y
-  accesibilidad (`role="status"`, `aria-live="polite"`). Se integró en la
-  pantalla de conciliación para notificar éxito/error al procesar la respuesta
-  del backend.
-- **Archivos afectados:**
-  - `apps/frontend/src/app/models/toast.model.ts` (nuevo)
-  - `apps/frontend/src/app/services/toast.service.ts` (nuevo)
-  - `apps/frontend/src/app/components/toast/*` (nuevo)
-  - `apps/frontend/src/app/app.component.{ts,html}`
-  - `apps/frontend/src/app/components/conciliacion/conciliacion.component.ts`
-  - `README.md`
-
-### 2026-10-16 — Componente reutilizable de card seleccionable (radio-card)
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** se creó `app-radio-card`, una card seleccionable reutilizable que
-  envuelve un `<input type="radio">` real (oculto visualmente) dentro de un
-  `<label>`, con barra lateral de acento configurable (`secondary`/`primary`/
-  `accent`/`none`), indicador de selección, bloque título/subtítulo, slot de
-  icono (`ng-content select="[icon]"`) y botón de acción inferior opcional
-  (`actionLabel` + evento `action`). Soporta uso en grupo (mismo `name`), modo
-  controlado (`checked` + `change`), estado `disabled` y accesibilidad
-  (focus-visible con anillo, `stopPropagation` en el botón, `aria-hidden` en el
-  icono decorativo).
-- **Archivos afectados:**
-  - `apps/frontend/src/app/components/radio-card/*` (nuevo)
-  - `README.md`
-
-### 2026-10-16 — Integración de radio-card en el resumen de conciliación
-
-- **Agente:** opencode (deepseek/deepseek-v4-pro)
-- **Resumen:** se reemplazaron las tarjetas estáticas del resumen por
-  `app-radio-card` reutilizando el componente creado. Las tres cards (Facturas,
-  Correctas y Con inconsistencia) actúan ahora como filtro de la tabla: al
-  seleccionar una, se filtra el detalle (misma lógica que los chips anteriores,
-  que se eliminaron por redundancia). Se conservó el buscador. La selección
-  queda ligada al estado `columnFilters` existente (`filtro()`/`setFiltro`).
-- **Archivos afectados:**
-  - `apps/frontend/src/app/components/conciliacion/conciliacion.component.{ts,html,scss}`
-  - `README.md`
