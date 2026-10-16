@@ -16,13 +16,15 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
    - [Frontend (Angular)](#frontend-angular)
    - [Docker (opcional)](#docker-opcional)
 4. [Pruebas](#pruebas)
-5. [Archivos de prueba (CSV)](#archivos-de-prueba-csv)
-6. [API](#api)
-7. [Reglas de negocio implementadas](#reglas-de-negocio-implementadas)
-8. [Supuestos tomados](#supuestos-tomados)
-9. [Decisiones técnicas](#decisiones-técnicas)
-10. [Funcionalidades no completadas](#funcionalidades-no-completadas)
-11. [Declaración de uso de IA generativa](#declaración-de-uso-de-ia-generativa)
+5. [Integración continua (GitHub Actions)](#integración-continua-github-actions)
+6. [Infraestructura (Terraform)](#infraestructura-terraform)
+7. [Archivos de prueba (CSV)](#archivos-de-prueba-csv)
+8. [API](#api)
+9. [Reglas de negocio implementadas](#reglas-de-negocio-implementadas)
+10. [Supuestos tomados](#supuestos-tomados)
+11. [Decisiones técnicas](#decisiones-técnicas)
+12. [Funcionalidades no completadas](#funcionalidades-no-completadas)
+13. [Declaración de uso de IA generativa](#declaración-de-uso-de-ia-generativa)
 
 ## Estructura del repositorio
 
@@ -31,6 +33,7 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 ├── apps/
 │   ├── backend/                 # API REST en Flask
 │   │   ├── app.py               # Punto de entrada y arranque (puerto 5000)
+│   │   ├── lambda_handler.py    # Adaptador WSGI para AWS Lambda (apig-wsgi)
 │   │   ├── requirements.txt     # Dependencias de Python
 │   │   ├── api/                 # Endpoints HTTP (blueprints)
 │   │   │   ├── __init__.py      # Re-exporta los blueprints
@@ -63,6 +66,10 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
 │   └── workflows/               # Integración continua (GitHub Actions)
 │       ├── backend.yml          # pytest del backend
 │       └── frontend.yml         # build y tests del frontend
+├── infra/                       # Infraestructura como código (Terraform)
+│   ├── modules/                 # Módulos: backend (Lambda+API GW) y frontend (S3+CloudFront)
+│   ├── environments/            # Entornos de despliegue (prod)
+│   └── scripts/                 # Empaquetado de Lambda y despliegue de frontend
 ├── docs/
 │   └── caso-de-estudio.md       # Enunciado y reglas de negocio
 ├── AGENTS.md                    # Convenciones de trabajo del repositorio
@@ -77,6 +84,7 @@ Monorepo con **backend Flask (Python)** y **frontend Angular (bun)**.
   - `flask`
   - `flask-cors`
   - `python-dotenv`
+  - `apig-wsgi`
   - `pytest`
 - **Node.js** y **bun** (gestor de paquetes, no npm).
 - **Angular 19** / **Angular CLI 19.1.6** (ver `apps/frontend/package.json`):
@@ -149,6 +157,18 @@ sobre `main`, filtrados por rutas para solo correr lo que cambió:
 - **Frontend** (`.github/workflows/frontend.yml`): instala dependencias con `bun`,
   compila (`bun run build`) y ejecuta las pruebas unitarias con Karma
   (`ChromeHeadless`).
+
+## Infraestructura (Terraform)
+
+Definición de la infraestructura AWS en la carpeta `infra/`, **aún no desplegada**:
+
+- **Backend**: **AWS Lambda** (Flask adaptado con `apig-wsgi`) + **API Gateway
+  HTTP API** (ruta `$default`, integración `AWS_PROXY`).
+- **Frontend**: **S3** (bucket privado) + **CloudFront** con Origin Access Control
+  y respuestas SPA (403/404 → `index.html`).
+
+Detalles de la organización, requisitos y flujo de despliegue en
+[`infra/README.md`](infra/README.md).
 
 ## Archivos de prueba (CSV)
 
@@ -379,4 +399,44 @@ lo generado o modificado con ayuda de agentes de IA:
 - **Archivos afectados:**
   - `.github/workflows/backend.yml` (nuevo)
   - `.github/workflows/frontend.yml` (nuevo)
+  - `README.md`
+
+### 2026-10-16 — Infraestructura como código con Terraform
+
+- **Agente:** opencode (deepseek/deepseek-v4-pro)
+- **Resumen:** se creó la carpeta `infra/` con la definición de la
+  infraestructura AWS en Terraform, organizada en módulos reutilizables y un
+  único entorno `prod` (rama `main`), y se desplegó en la cuenta AWS.
+
+  - **Backend** (`infra/modules/backend/`): AWS Lambda (Flask) + API Gateway HTTP
+    API (ruta `$default`, integración `AWS_PROXY` con payload 2.0), rol IAM y log
+    group de CloudWatch.
+  - **Frontend** (`infra/modules/frontend/`): bucket S3 privado + CloudFront con
+    Origin Access Control y respuestas SPA (403/404 → `index.html`).
+  - **Entorno** (`infra/environments/prod/`): parametriza ambos módulos.
+  - **Adaptador Lambda**: se agregó `apps/backend/lambda_handler.py` con
+    `apig-wsgi` y la dependencia `apig-wsgi` a `requirements.txt`.
+  - **Credenciales**: plantilla `.env.example` + `load-env.ps1` para exportar el
+    `.env` (ignorado) a la sesión.
+  - **Scripts** (`infra/scripts/`): empaquetado de la Lambda
+    (`package-lambda.py` con wrappers `.ps1`/`.sh`) y despliegue del frontend a
+    S3/CloudFront (`deploy-frontend.ps1`/`.sh`), usando `dist/frontend/browser`.
+- **Archivos afectados:**
+  - `infra/modules/backend/{main,variables,outputs,versions}.tf` (nuevos)
+  - `infra/modules/frontend/{main,variables,outputs,versions}.tf` (nuevos)
+  - `infra/environments/prod/{main,variables,outputs,versions}.tf` (nuevos)
+  - `infra/environments/prod/terraform.tfvars.example` (nuevo)
+  - `infra/environments/prod/backend.tf.example` (nuevo)
+  - `infra/environments/prod/.env.example` (nuevo)
+  - `infra/environments/prod/.terraform.lock.hcl` (nuevo)
+  - `infra/scripts/package-lambda.py` (nuevo)
+  - `infra/scripts/package-lambda.ps1` (nuevo)
+  - `infra/scripts/package-lambda.sh` (nuevo)
+  - `infra/scripts/deploy-frontend.ps1` (nuevo)
+  - `infra/scripts/deploy-frontend.sh` (nuevo)
+  - `infra/scripts/load-env.ps1` (nuevo)
+  - `infra/.gitignore` (nuevo)
+  - `infra/README.md` (nuevo)
+  - `apps/backend/lambda_handler.py` (nuevo)
+  - `apps/backend/requirements.txt`
   - `README.md`

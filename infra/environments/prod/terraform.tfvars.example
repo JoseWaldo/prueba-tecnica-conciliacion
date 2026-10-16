@@ -1,0 +1,13 @@
+# Copia este archivo como `terraform.tfvars` y ajusta los valores reales.
+# No se hace commit de `terraform.tfvars` (ver infra/.gitignore).
+
+aws_region = "us-east-1"
+project_name = "conciliacion"
+environment  = "prod"
+
+# Debe ser único globalmente; usa tu cuenta/alias como sufijo.
+bucket_name = "conciliacion-frontend-prod-<TU-CUENTA>"
+
+tags = {
+  Owner = "equipo-contabilidad"
+}
