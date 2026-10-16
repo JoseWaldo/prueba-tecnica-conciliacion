@@ -2,6 +2,9 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.6.
 
+> Aplicación de conciliación de facturas y retenciones. Usa **bun** como gestor
+> de paquetes y TanStack Table para la tabla de resultados.
+
 ## Development server
 
 To start a local development server, run:
