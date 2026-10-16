@@ -2,9 +2,16 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import {
   ColumnDef,
+  ColumnFilter,
   FlexRender,
+  columnFilteringFeature,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  filterFn_equalsString,
   flexRenderComponent,
+  globalFilteringFeature,
   injectTable,
+  rowPaginationFeature,
   tableFeatures,
 } from '@tanstack/angular-table';
 import { EstadoBadgeComponent } from './estado-badge.component';
@@ -16,7 +23,13 @@ import {
 
 type Filtro = 'Todas' | 'Correcta' | 'Con inconsistencia';
 
-const features = tableFeatures({});
+const features = tableFeatures({
+  columnFilteringFeature,
+  globalFilteringFeature,
+  filteredRowModel: createFilteredRowModel(),
+  rowPaginationFeature,
+  paginatedRowModel: createPaginatedRowModel(),
+});
 
 const numero = (valor: unknown): string => (valor as number).toLocaleString('es-CO');
 
@@ -32,6 +45,7 @@ const columns: ColumnDef<typeof features, DetalleFactura>[] = [
   {
     accessorKey: 'estado',
     header: 'Estado',
+    filterFn: filterFn_equalsString,
     cell: ({ getValue }) =>
       flexRenderComponent(EstadoBadgeComponent, { inputs: { estado: getValue() as string } }),
   },
@@ -52,7 +66,6 @@ export class AppComponent {
   private service = inject(ConciliacionService);
 
   filtros: Filtro[] = ['Todas', 'Correcta', 'Con inconsistencia'];
-  filtro = signal<Filtro>('Todas');
 
   facturas: File | null = null;
   contabilidad: File | null = null;
@@ -61,24 +74,48 @@ export class AppComponent {
   error = signal('');
   resultado = signal<ResultadoConciliacion | null>(null);
 
-  readonly detalleFiltrado = computed<DetalleFactura[]>(() => {
-    const r = this.resultado();
-    if (!r) return [];
-    return this.filtro() === 'Todas'
-      ? r.detalle
-      : r.detalle.filter((d) => d.estado === this.filtro());
-  });
+  readonly pagination = signal({ pageIndex: 0, pageSize: 10 });
+  readonly globalFilter = signal('');
+  readonly columnFilters = signal<ColumnFilter[]>([]);
 
   readonly table = injectTable(() => ({
     features,
     columns,
-    data: this.detalleFiltrado(),
+    data: this.resultado()?.detalle ?? [],
+    state: {
+      pagination: this.pagination(),
+      globalFilter: this.globalFilter(),
+      columnFilters: this.columnFilters(),
+    },
+    onPaginationChange: (next) =>
+      typeof next === 'function' ? this.pagination.update(next) : this.pagination.set(next),
+    onGlobalFilterChange: (next) =>
+      typeof next === 'function' ? this.globalFilter.update(next) : this.globalFilter.set(next),
+    onColumnFiltersChange: (next) =>
+      typeof next === 'function' ? this.columnFilters.update(next) : this.columnFilters.set(next),
   }));
+
+  readonly filtro = computed<Filtro>(() => {
+    const cf = this.columnFilters();
+    return cf.length === 0 ? 'Todas' : (cf[0].value as Filtro);
+  });
+
+  readonly totalPaginas = computed(() => this.table.getPageCount());
+  readonly puedeAnterior = computed(() => this.table.getCanPreviousPage());
+  readonly puedeSiguiente = computed(() => this.table.getCanNextPage());
 
   readonly numColumns = new Set(['base_gravable', 'valor_iva', 'valor_retencion', 'total_factura']);
 
   esNum(id: string): boolean {
     return this.numColumns.has(id);
+  }
+
+  setFiltro(f: Filtro): void {
+    this.columnFilters.set(f === 'Todas' ? [] : [{ id: 'estado', value: f }]);
+  }
+
+  onBusqueda(event: Event): void {
+    this.globalFilter.set((event.target as HTMLInputElement).value);
   }
 
   onFile(event: Event, tipo: 'facturas' | 'contabilidad'): void {

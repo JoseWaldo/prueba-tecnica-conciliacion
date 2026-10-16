@@ -48,11 +48,18 @@
     </div>
 
     <div class="filters">
+      <input
+        class="search"
+        type="search"
+        placeholder="Buscar factura, NIT, concepto…"
+        [value]="globalFilter()"
+        (input)="onBusqueda($event)"
+      />
       <button
         *ngFor="let f of filtros"
         class="chip"
         [class.chip--active]="filtro() === f"
-        (click)="filtro.set(f)"
+        (click)="setFiltro(f)"
       >
         {{ f }}
       </button>
@@ -83,6 +90,18 @@
           }
         </tbody>
       </table>
+    </div>
+
+    <div class="pagination">
+      <span class="pagination__info">
+        Página {{ pagination().pageIndex + 1 }} de {{ totalPaginas() }}
+      </span>
+      <button class="chip" [disabled]="!puedeAnterior()" (click)="table.previousPage()">
+        Anterior
+      </button>
+      <button class="chip" [disabled]="!puedeSiguiente()" (click)="table.nextPage()">
+        Siguiente
+      </button>
     </div>
   </section>
 </main>
